@@ -1,4 +1,5 @@
-using Core.Services;
+using Core.Services.GitHub;
+using Core.Services.GitLab;
 using Core.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication;
@@ -54,6 +55,13 @@ builder.Services.AddHttpClient<GitHubIssueService>((serviceProvider, httpClient)
     httpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
     httpClient.DefaultRequestHeaders.Add("Authorization", issueServicesConfiguration.GitHubToken);
     httpClient.DefaultRequestHeaders.Add("User-Agent", "IssuesManager");
+});
+
+builder.Services.AddHttpClient<GitLabIssueService>((serviceProvider, httpClient) =>
+{
+    var issueServicesConfiguration = serviceProvider.GetRequiredService<IOptions<IssueServicesConfiguration>>().Value;
+
+    httpClient.DefaultRequestHeaders.Add("PRIVATE-TOKEN", issueServicesConfiguration.GitLabToken);
 });
 
 builder.Services.AddValidatorsFromAssembly(typeof(IssueRequestValidator).Assembly);

@@ -50,6 +50,12 @@ internal sealed class GlobalExceptionHandlerMiddleware : IMiddleware
                 problem.Status = (int)HttpStatusCode.ServiceUnavailable;
                 break;
 
+            case TokenEmptyException:
+                problem.Type = "Authorization Token Error";
+                problem.Title = "Authorization Token Error";
+                problem.Status = (int)HttpStatusCode.ServiceUnavailable;
+                break;
+
             case ValidationErrorException validationErrorException:
                 problem = new HttpValidationProblemDetails(validationErrorException.Errors)
                 {

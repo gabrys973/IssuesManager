@@ -2,7 +2,7 @@
 using Core.Validators;
 using FluentValidation.TestHelper;
 
-namespace Test;
+namespace Test.ValidatorsTests;
 
 public class IssueRequestValidatiorTests
 {

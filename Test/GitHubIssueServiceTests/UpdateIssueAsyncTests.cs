@@ -1,4 +1,5 @@
 ﻿using Core.Exceptions;
+using Core.Models;
 using Core.Models.GitHub;
 using Core.Services.GitHub;
 using Moq;
@@ -9,15 +10,16 @@ using System.Text.Json;
 
 namespace Test.GitHubIssueServiceTests;
 
-public class CloseIssueAsyncTests : GitHubIssueServiceTestBase
+public class UpdateIssueAsyncTests : GitHubIssueServiceTestBase
 {
     [Test]
-    public async Task CloseIssueAsync_CorrectRequest_Success()
+    public async Task UpdateIssueAsync_CorrectRequest_Success()
     {
         // Arrange
         var owner = "owner";
         var repository = "repository";
         var issueId = "issueId";
+        var requestBody = new IssueRequest("title", "decription");
 
         var responseBody = new GitHubIssueResponse(123, "title", "decription", "closed", $"{BaseUrl}/repos/{owner}/{repository}/issues/123");
 
@@ -41,7 +43,7 @@ public class CloseIssueAsyncTests : GitHubIssueServiceTestBase
         var service = new GitHubIssueService(client);
 
         // Act
-        var result = await service.CloseIssueAsync(owner, repository, issueId);
+        var result = await service.UpdateIssueAsync(owner, repository, issueId, requestBody);
 
         // Assert
         Assert.That(result.Title, Is.EqualTo(responseBody.Title));
@@ -52,12 +54,13 @@ public class CloseIssueAsyncTests : GitHubIssueServiceTestBase
     }
 
     [Test]
-    public void CloseIssueAsync_BadRoute_ExceptionThrowed()
+    public void UpdateIssueAsync_BadRoute_ExceptionThrowed()
     {
         // Arrange
         var owner = "owner";
         var repository = "badRepositoryName";
         var issueId = "issueId";
+        var requestBody = new IssueRequest("title", "decription");
 
         var responseBody = new GitHubIssueResponse(123, "title", "decription", "open", $"{BaseUrl}/repos/{owner}/{repository}/issues/123");
 
@@ -80,19 +83,20 @@ public class CloseIssueAsyncTests : GitHubIssueServiceTestBase
         var service = new GitHubIssueService(client);
 
         // Act
-        var ex = Assert.ThrowsAsync<ExternalErrorException>(async () => await service.CloseIssueAsync(owner, repository, issueId));
+        var ex = Assert.ThrowsAsync<ExternalErrorException>(async () => await service.UpdateIssueAsync(owner, repository, issueId, requestBody));
 
         // Assert
         Assert.That(ex.Message, Is.EqualTo("External GitHub service threw an exception."));
     }
 
     [Test]
-    public void CloseIssueAsync_AuthorizationHeaderIsNull_ExceptionThrowed()
+    public void UpdateIssueAsync_AuthorizationHeaderIsNull_ExceptionThrowed()
     {
         // Arrange
         var owner = "owner";
         var repository = "repository";
         var issueId = "issueId";
+        var requestBody = new IssueRequest("title", "decription");
 
         var responseBody = new GitHubIssueResponse(123, "title", "decription", "open", $"{BaseUrl}/repos/{owner}/{repository}/issues/123");
 
@@ -107,7 +111,7 @@ public class CloseIssueAsyncTests : GitHubIssueServiceTestBase
         var service = new GitHubIssueService(client);
 
         // Act
-        var ex = Assert.ThrowsAsync<TokenEmptyException>(async () => await service.CloseIssueAsync(owner, repository, issueId));
+        var ex = Assert.ThrowsAsync<TokenEmptyException>(async () => await service.UpdateIssueAsync(owner, repository, issueId, requestBody));
 
         // Assert
         Assert.That(ex.Message, Is.EqualTo("Token for GitHub service cannot be empty or null."));
