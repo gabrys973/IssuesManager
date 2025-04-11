@@ -82,6 +82,6 @@ public class GtiHubIssueServiceTests
 
         var ex = Assert.ThrowsAsync<ExternalErrorException>(async () => await _service.CreateIssueAsync(owner, repository, requestBody));
 
-        Assert.That(ex.Message, Is.EqualTo("External service GitHub throw an exception."));
+        Assert.That(ex.Message, Is.EqualTo("External GitHub service threw an exception."));
     }
 }
