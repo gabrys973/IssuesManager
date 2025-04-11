@@ -1,7 +1,10 @@
 using Core.Services;
+using Core.Validators;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
+using System.Globalization;
 using Web.Auth;
 using Web.Configutarions;
 using Web.Middlewares;
@@ -48,6 +51,9 @@ builder.Services.AddHttpClient<GitHubIssueService>((serviceProvider, httpClient)
     httpClient.DefaultRequestHeaders.Add("Authorization", issueServicesConfiguration.GitHubToken);
     httpClient.DefaultRequestHeaders.Add("User-Agent", "IssuesManager");
 });
+
+builder.Services.AddValidatorsFromAssembly(typeof(IssueRequestValidator).Assembly);
+ValidatorOptions.Global.LanguageManager.Culture = new CultureInfo("en");
 
 builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();
 

@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	<InternalsVisibleTo Include="Test" />
   </ItemGroup>
