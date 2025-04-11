@@ -4,6 +4,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using System.Globalization;
 using Web.Auth;
 using Web.Configutarions;
@@ -39,6 +40,9 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(builder.Configuration));
 
 builder.Services.AddOptions<IssueServicesConfiguration>()
     .BindConfiguration("IssueServices");

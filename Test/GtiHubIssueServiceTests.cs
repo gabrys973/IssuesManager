@@ -61,7 +61,7 @@ public class GtiHubIssueServiceTests
     public void CreateIssueAsync_BadRoute_ExceptionThrowed()
     {
         var owner = "owner";
-        var repository = "repository";
+        var repository = "badRepositoryName";
         var requestBody = new IssueRequest("title", "decription");
 
         var responseBody = new GitHubIssueResponse(123, "title", "decription", "open", $"{BaseUrl}/repos/{owner}/{repository}/issues/123");
