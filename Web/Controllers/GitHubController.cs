@@ -1,5 +1,6 @@
 using Core.Models;
 using Core.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Web.Controllers;
@@ -16,6 +17,7 @@ public class GitHubController : ControllerBase
     }
 
     [HttpPost("{owner}/{repo}")]
+    [Authorize]
     public async Task<ActionResult<IssueResponse>> CreateIssue([FromRoute] string owner, [FromRoute] string repo, [FromBody] IssueRequest request)
     {
         var issue = await _gitHubIssueService.CreateIssueAsync(owner, repo, request);
