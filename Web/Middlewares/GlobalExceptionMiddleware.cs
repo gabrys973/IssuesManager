@@ -1,7 +1,7 @@
 ﻿using Core.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using System.Net;
+using System.Text.Json;
 
 namespace Web.Middlewares;
 
@@ -68,7 +68,7 @@ internal sealed class GlobalExceptionHandlerMiddleware : IMiddleware
                 break;
         }
 
-        var response = JsonConvert.SerializeObject(problem);
+        var response = JsonSerializer.Serialize(problem);
         context.Response.ContentType = "application/problem+json";
         context.Response.StatusCode = problem.Status.Value;
         await context.Response.WriteAsync(response);

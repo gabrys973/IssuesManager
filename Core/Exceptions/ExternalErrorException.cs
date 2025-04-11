@@ -1,13 +1,7 @@
 ﻿namespace Core.Exceptions;
 
-public class ExternalErrorException : Exception
+public class ExternalErrorException(string serviceName, string errorMessage) : Exception($"External {serviceName} service threw an exception.")
 {
-    public string ErrorMessage { get; }
-    public string ServiceName { get; }
-
-    public ExternalErrorException(string serviceName, string errorMessage) : base($"External {serviceName} service threw an exception.")
-    {
-        ServiceName = serviceName;
-        ErrorMessage = errorMessage;
-    }
+    public string ErrorMessage { get; } = errorMessage;
+    public string ServiceName { get; } = serviceName;
 }

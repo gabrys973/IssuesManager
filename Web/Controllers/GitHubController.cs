@@ -31,4 +31,12 @@ public class GitHubController : ControllerBase
         var issue = await _gitHubIssueService.CreateIssueAsync(owner, repo, request);
         return Ok(issue);
     }
+
+    [HttpPatch("{owner}/{repo}/{issueId}/close")]
+    [Authorize]
+    public async Task<ActionResult<IssueResponse>> CloseIssue([FromRoute] string owner, [FromRoute] string repo, [FromRoute] string issueId)
+    {
+        var issue = await _gitHubIssueService.CloseIssueAsync(owner, repo, issueId);
+        return Ok(issue);
+    }
 }

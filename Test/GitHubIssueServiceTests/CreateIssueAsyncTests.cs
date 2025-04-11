@@ -1,29 +1,16 @@
 using Core.Exceptions;
 using Core.Models;
 using Core.Models.GitHub;
-using Core.Services;
 using Moq;
 using Moq.Protected;
 using System.Net;
 using System.Text;
 using System.Text.Json;
 
-namespace Test;
+namespace Test.GitHubIssueServiceTests;
 
-public class GtiHubIssueServiceTests
+public class CreateIssueAsyncTests : GitHubIssueServiceTestBase
 {
-    private const string BaseUrl = "https://api.github.com";
-    private readonly Mock<HttpMessageHandler> _handlerMock;
-    private readonly GitHubIssueService _service;
-    private readonly HttpClient _httpClient;
-
-    public GtiHubIssueServiceTests()
-    {
-        _handlerMock = new();
-        _httpClient = new(_handlerMock.Object);
-        _service = new GitHubIssueService(_httpClient);
-    }
-
     [Test]
     public async Task CreateIssueAsync_CorrectRequest_Success()
     {
@@ -41,6 +28,8 @@ public class GtiHubIssueServiceTests
             StatusCode = HttpStatusCode.OK
         };
 
+        _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", "Basic username:password");
+
         _handlerMock.Protected()
             .Setup<Task<HttpResponseMessage>>(
             "SendAsync",
@@ -50,11 +39,11 @@ public class GtiHubIssueServiceTests
 
         var result = await _service.CreateIssueAsync(owner, repository, requestBody);
 
-        Assert.That(responseBody.Title, Is.EqualTo(result.Title));
-        Assert.That(responseBody.State, Is.EqualTo(result.State));
-        Assert.That(responseBody.Body, Is.EqualTo(result.Description));
-        Assert.That(responseBody.HtmlUrl, Is.EqualTo(result.Url));
-        Assert.That(responseBody.Number.ToString(), Is.EqualTo(result.Id));
+        Assert.That(result.Title, Is.EqualTo(responseBody.Title));
+        Assert.That(result.State, Is.EqualTo(responseBody.State));
+        Assert.That(result.Description, Is.EqualTo(responseBody.Body));
+        Assert.That(result.Url, Is.EqualTo(responseBody.HtmlUrl));
+        Assert.That(result.Id, Is.EqualTo(responseBody.Number.ToString()));
     }
 
     [Test]
@@ -73,6 +62,8 @@ public class GtiHubIssueServiceTests
             StatusCode = HttpStatusCode.NotFound
         };
 
+        _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", "Basic username:password");
+
         _handlerMock.Protected()
             .Setup<Task<HttpResponseMessage>>(
             "SendAsync",
@@ -83,5 +74,35 @@ public class GtiHubIssueServiceTests
         var ex = Assert.ThrowsAsync<ExternalErrorException>(async () => await _service.CreateIssueAsync(owner, repository, requestBody));
 
         Assert.That(ex.Message, Is.EqualTo("External GitHub service threw an exception."));
+    }
+
+    [Test]
+    public void CreateIssueAsync_AuthorizationHeaderIsNull_ExceptionThrowed()
+    {
+        var owner = "owner";
+        var repository = "repository";
+        var requestBody = new IssueRequest("title", "decription");
+
+        var responseBody = new GitHubIssueResponse(123, "title", "decription", "open", $"{BaseUrl}/repos/{owner}/{repository}/issues/123");
+
+        var content = JsonSerializer.Serialize(responseBody);
+
+        var response = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK
+        };
+
+        _httpClient.DefaultRequestHeaders.Remove("Authorization");
+
+        _handlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+            "SendAsync",
+            ItExpr.Is<HttpRequestMessage>(x => x.RequestUri == new Uri($"{BaseUrl}/repos/{owner}/{repository}/issues")),
+            ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(response);
+
+        var ex = Assert.ThrowsAsync<TokenEmptyException>(async () => await _service.CreateIssueAsync(owner, repository, requestBody));
+
+        Assert.That(ex.Message, Is.EqualTo("Token for GitHub service cannot be empty or null."));
     }
 }

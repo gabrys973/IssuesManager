@@ -1,5 +1,4 @@
-﻿using Core.Exceptions;
-using Core.Interfaces.Services;
+﻿using Core.Interfaces.Services;
 using Core.Mappers.GitHub;
 using Core.Models;
 using Core.Models.GitHub;
@@ -9,19 +8,12 @@ using System.Text.Json;
 
 namespace Core.Services;
 
-public sealed class GitHubIssueService : IIssueService
+public sealed class GitHubIssueService(HttpClient httpClient) : IssueService(httpClient, "https://api.github.com", "GitHub"), IIssueService
 {
-    private readonly HttpClient _httpClient;
-    private const string BaseUrl = "https://api.github.com";
-    private readonly string _serviceName = "GitHub";
-
-    public GitHubIssueService(HttpClient httpClient)
-    {
-        _httpClient = httpClient;
-    }
-
     public async Task<IssueResponse> CreateIssueAsync(string owner, string repository, IssueRequest request)
     {
+        CheckIfTokenEmptyOrNull();
+
         var url = $"{BaseUrl}/repos/{owner}/{repository}/issues";
 
         var requestBody = JsonSerializer.Serialize(new
@@ -31,7 +23,6 @@ public sealed class GitHubIssueService : IIssueService
         });
 
         var content = new StringContent(requestBody, Encoding.UTF8, "application/json");
-
         var response = await _httpClient.PostAsync(url, content);
 
         if(!response.IsSuccessStatusCode)
@@ -50,12 +41,24 @@ public sealed class GitHubIssueService : IIssueService
 
     public async Task<IssueResponse> CloseIssueAsync(string owner, string repository, string issueId)
     {
-        throw new NotImplementedException();
-    }
+        CheckIfTokenEmptyOrNull();
 
-    private async Task ThrowExternalException(HttpResponseMessage response)
-    {
-        var message = await response.Content.ReadAsStringAsync();
-        throw new ExternalErrorException(_serviceName, message);
+        var url = $"{BaseUrl}/repos/{owner}/{repository}/issues/{issueId}";
+
+        var requestBody = JsonSerializer.Serialize(new
+        {
+            state = "closed"
+        });
+
+        var content = new StringContent(requestBody, Encoding.UTF8, "application/json");
+        var response = await _httpClient.PatchAsync(url, content);
+
+        if(!response.IsSuccessStatusCode)
+        {
+            await ThrowExternalException(response);
+        }
+
+        var githubIssue = await response.Content.ReadFromJsonAsync<GitHubIssueResponse>();
+        return githubIssue.MapToIssueResponse();
     }
 }
