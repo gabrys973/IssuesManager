@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Web.Auth;
 using Web.Configutarions;
+using Web.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +49,8 @@ builder.Services.AddHttpClient<GitHubIssueService>((serviceProvider, httpClient)
     httpClient.DefaultRequestHeaders.Add("User-Agent", "IssuesManager");
 });
 
+builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();
+
 builder.Services.AddAuthentication("BasicAuthentication")
     .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
 
@@ -62,6 +65,7 @@ if(app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.MapControllers();
 
